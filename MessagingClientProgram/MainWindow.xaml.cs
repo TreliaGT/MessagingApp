@@ -54,23 +54,38 @@ namespace MessagingClientProgram
             ctThread.Start();
         }
 
+        /*   private void getMessage()
+           {
+               while (true)
+               {
+                   serverStream = clientSocket.GetStream();
+                   int buffSize = 0;
+                   byte[] inStream = new byte[10025];
+                   buffSize = clientSocket.ReceiveBufferSize;
+                   serverStream.Read(inStream, 0, buffSize);
+                   string returndata = Encoding.ASCII.GetString(inStream);
+                   readData = " " + returndata;
+                   msg();
+               }
+           }*/
+
         private void getMessage()
         {
             while (true)
             {
                 serverStream = clientSocket.GetStream();
                 int buffSize = 0;
-                byte[] inStream = new byte[10025];
+                byte[] inStream = new byte[300];
                 buffSize = clientSocket.ReceiveBufferSize;
                 serverStream.Read(inStream, 0, buffSize);
-                string returndata = Encoding.ASCII.GetString(inStream);
-                readData = " " + returndata;
+                string returndata = System.Text.Encoding.ASCII.GetString(inStream);
+                readData = "" + returndata;
                 msg();
             }
         }
 
-        private void msg(bool waitUntilReturn = false)
-        {/*
+      /*  private void msg(bool waitUntilReturn = false)
+        {
             if (control.Dispatcher.CheckAccess())
             {
                 this.Dispatcher.Invoke(new Action(msg));
@@ -79,7 +94,7 @@ namespace MessagingClientProgram
             {
                 messagesData.Add(UsernameTXT.Text + ":: " + readData);
                 MessageLV.Items.Add(messagesData);
-            }*/
+            }
           
             Action append = () => MessageLV.Items.Add(UsernameTXT.Text + ":: " + readData);
             if (MessageLV.CheckAccess())
@@ -94,6 +109,23 @@ namespace MessagingClientProgram
             {
                 MessageLV.Dispatcher.BeginInvoke(append);
             }
+        }*/
+
+  
+
+        private void msg()
+        {
+            MessageTxt.Dispatcher.Invoke(
+                new UpdateTextCallback(updateText),
+                new object[] { " >> " + readData }
+                );
         }
+
+        private void updateText(string message)
+        {
+            MessageTxt.Text = MessageTxt.Text + Environment.NewLine + message;
+        }
+
+        public delegate void UpdateTextCallback(string message);
     }
 }
