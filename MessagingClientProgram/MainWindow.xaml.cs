@@ -27,7 +27,6 @@ namespace MessagingClientProgram
         System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
         NetworkStream serverStream = default(NetworkStream);
         string readData = null;
-
         public MainWindow()
         {
             InitializeComponent();
@@ -35,39 +34,38 @@ namespace MessagingClientProgram
 
         private void Send_Click(object sender, RoutedEventArgs e)
         {
-            byte[] outStream = System.Text.Encoding.ASCII.GetBytes(MessageTxt.Text + "$");
+            byte[] outStream = System.Text.Encoding.ASCII.GetBytes(MessageTxt.Text /*+ "$"*/);
             serverStream.Write(outStream, 0, outStream.Length);
             serverStream.Flush();
         }
 
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)
         {
+          
             readData = "Connecting to Chat Server ..";
-            msg();
-            clientSocket.Connect("P-B223-176148" ,8888);
+             msg();
+             clientSocket.Connect(ServerTXT.Text, Convert.ToInt32(PortTXT.Text));
 
-            byte[] outStream = Encoding.ASCII.GetBytes(UsernameTXT.Text + "$");
-            serverStream.Write(outStream, 0, outStream.Length);
-            serverStream.Flush();
+             byte[] outStream = Encoding.ASCII.GetBytes(UsernameTXT.Text /*+ "$"*/);
+             serverStream.Write(outStream, 0, outStream.Length);
+             serverStream.Flush();
 
-            Thread ctThread = new Thread(getMessage);
-            ctThread.Start();
+             Thread ctThread = new Thread(getMessage);
+             ctThread.Start();
+            
         }
 
-        /*   private void getMessage()
-           {
-               while (true)
-               {
-                   serverStream = clientSocket.GetStream();
-                   int buffSize = 0;
-                   byte[] inStream = new byte[10025];
-                   buffSize = clientSocket.ReceiveBufferSize;
-                   serverStream.Read(inStream, 0, buffSize);
-                   string returndata = Encoding.ASCII.GetString(inStream);
-                   readData = " " + returndata;
-                   msg();
-               }
-           }*/
+        public void ReceiveData(TcpClient client)
+        {
+            NetworkStream ns = client.GetStream();
+            byte[] receivedBytes = new byte[1024];
+            int byte_count;
+
+            while ((byte_count = ns.Read(receivedBytes, 0, receivedBytes.Length)) > 0)
+            {
+                MessageLV.Items.Add(Encoding.ASCII.GetString(receivedBytes, 0, byte_count));
+            }
+        }
 
         private void getMessage()
         {
@@ -84,38 +82,11 @@ namespace MessagingClientProgram
             }
         }
 
-      /*  private void msg(bool waitUntilReturn = false)
-        {
-            if (control.Dispatcher.CheckAccess())
-            {
-                this.Dispatcher.Invoke(new Action(msg));
-            }
-            else
-            {
-                messagesData.Add(UsernameTXT.Text + ":: " + readData);
-                MessageLV.Items.Add(messagesData);
-            }
-          
-            Action append = () => MessageLV.Items.Add(UsernameTXT.Text + ":: " + readData);
-            if (MessageLV.CheckAccess())
-            {
-                append();
-            }
-            else if (waitUntilReturn)
-            {
-                MessageLV.Dispatcher.Invoke(append);
-            }
-            else
-            {
-                MessageLV.Dispatcher.BeginInvoke(append);
-            }
-        }*/
-
   
 
         private void msg()
         {
-            MessageTxt.Dispatcher.Invoke(
+            MessageLV.Dispatcher.Invoke(
                 new UpdateTextCallback(updateText),
                 new object[] { " >> " + readData }
                 );
