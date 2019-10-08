@@ -16,6 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Net.Sockets;
 using System.Threading;
+using System.Collections.Specialized;
 
 namespace MessagingClientProgram
 {
@@ -30,29 +31,50 @@ namespace MessagingClientProgram
         public MainWindow()
         {
             InitializeComponent();
+            ((INotifyCollectionChanged)MessageLV.Items).CollectionChanged
+               += Messages_CollectionChanged;
         }
 
-        private void Send_Click(object sender, RoutedEventArgs e)
+
+        private void Messages_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            byte[] outStream = System.Text.Encoding.ASCII.GetBytes(MessageTxt.Text /*+ "$"*/);
+            if (e.NewItems == null)
+                return;
+
+            if (e.NewItems.Count > 0)
+            {
+                MessageLV.ScrollIntoView(MessageLV.Items[MessageLV.Items.Count - 1]);
+            }
+        }
+
+        private void MessageBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                var context = (MWViewModel)DataContext;
+                context.SendCommand.Execute(null);
+            }
+        }
+      /*  private void Send_Click(object sender, RoutedEventArgs e)
+        {
+            byte[] outStream = System.Text.Encoding.ASCII.GetBytes(MessageTxt.Text + "$");
             serverStream.Write(outStream, 0, outStream.Length);
             serverStream.Flush();
         }
 
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)
         {
-          
-            readData = "Connecting to Chat Server ..";
-             msg();
-             clientSocket.Connect(ServerTXT.Text, Convert.ToInt32(PortTXT.Text));
 
-             byte[] outStream = Encoding.ASCII.GetBytes(UsernameTXT.Text /*+ "$"*/);
-             serverStream.Write(outStream, 0, outStream.Length);
-             serverStream.Flush();
+              readData = "Connecting to Chat Server ..";
+               msg();
+               clientSocket.Connect("127.0.0.1", 8888);
 
-             Thread ctThread = new Thread(getMessage);
-             ctThread.Start();
-            
+               byte[] outStream = Encoding.ASCII.GetBytes(UsernameTXT.Text + "$");
+               serverStream.Write(outStream, 0, outStream.Length);
+               serverStream.Flush();
+
+               Thread ctThread = new Thread(getMessage);
+               ctThread.Start();
         }
 
         public void ReceiveData(TcpClient client)
@@ -97,6 +119,6 @@ namespace MessagingClientProgram
             MessageTxt.Text = MessageTxt.Text + Environment.NewLine + message;
         }
 
-        public delegate void UpdateTextCallback(string message);
+        public delegate void UpdateTextCallback(string message);*/
     }
 }
