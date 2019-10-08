@@ -31,75 +31,92 @@ namespace MessagingClientProgram
         public MainWindow()
         {
             InitializeComponent();
+            ((INotifyCollectionChanged)MessageLV.Items).CollectionChanged
+              += Messages_CollectionChanged;
+        }
+
+        private void Messages_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems == null)
+                return;
+
+            if (e.NewItems.Count > 0)
+            {
+                MessageLV.ScrollIntoView(MessageLV.Items[MessageLV.Items.Count - 1]);
+            }
+        }
+
+        private void Send_Click(object sender, RoutedEventArgs e)
+        {
+            var context = (MWViewModel)DataContext;
+             context.Send();
         }
 
 
-
-       
-     /*   private void Send_Click(object sender, RoutedEventArgs e)
-        {
-            byte[] outStream = System.Text.Encoding.ASCII.GetBytes(MessageTxt.Text + "$");
-            serverStream.Write(outStream, 0, outStream.Length);
-            serverStream.Flush();
-        }
-
-        private void ConnectBtn_Click(object sender, RoutedEventArgs e)
-        {
-
-              readData = "Connecting to Chat Server ..";
-               msg();
-               clientSocket.Connect("127.0.0.1", 8888);
-
-               byte[] outStream = Encoding.ASCII.GetBytes(UsernameTXT.Text + "$");
+        /*   private void Send_Click(object sender, RoutedEventArgs e)
+           {
+               byte[] outStream = System.Text.Encoding.ASCII.GetBytes(MessageTxt.Text + "$");
                serverStream.Write(outStream, 0, outStream.Length);
                serverStream.Flush();
+           }
 
-               Thread ctThread = new Thread(getMessage);
-               ctThread.Start();
-        }
+           private void ConnectBtn_Click(object sender, RoutedEventArgs e)
+           {
 
-        public void ReceiveData(TcpClient client)
-        {
-            NetworkStream ns = client.GetStream();
-            byte[] receivedBytes = new byte[1024];
-            int byte_count;
+                 readData = "Connecting to Chat Server ..";
+                  msg();
+                  clientSocket.Connect("127.0.0.1", 8888);
 
-            while ((byte_count = ns.Read(receivedBytes, 0, receivedBytes.Length)) > 0)
-            {
-                MessageLV.Items.Add(Encoding.ASCII.GetString(receivedBytes, 0, byte_count));
-            }
-        }
+                  byte[] outStream = Encoding.ASCII.GetBytes(UsernameTXT.Text + "$");
+                  serverStream.Write(outStream, 0, outStream.Length);
+                  serverStream.Flush();
 
-        private void getMessage()
-        {
-            while (true)
-            {
-                serverStream = clientSocket.GetStream();
-                int buffSize = 0;
-                byte[] inStream = new byte[300];
-                buffSize = clientSocket.ReceiveBufferSize;
-                serverStream.Read(inStream, 0, buffSize);
-                string returndata = System.Text.Encoding.ASCII.GetString(inStream);
-                readData = "" + returndata;
-                msg();
-            }
-        }
+                  Thread ctThread = new Thread(getMessage);
+                  ctThread.Start();
+           }
 
-  
+           public void ReceiveData(TcpClient client)
+           {
+               NetworkStream ns = client.GetStream();
+               byte[] receivedBytes = new byte[1024];
+               int byte_count;
 
-        private void msg()
-        {
-            MessageLV.Dispatcher.Invoke(
-                new UpdateTextCallback(updateText),
-                new object[] { " >> " + readData }
-                );
-        }
+               while ((byte_count = ns.Read(receivedBytes, 0, receivedBytes.Length)) > 0)
+               {
+                   MessageLV.Items.Add(Encoding.ASCII.GetString(receivedBytes, 0, byte_count));
+               }
+           }
 
-        private void updateText(string message)
-        {
-            MessageTxt.Text = MessageTxt.Text + Environment.NewLine + message;
-        }
+           private void getMessage()
+           {
+               while (true)
+               {
+                   serverStream = clientSocket.GetStream();
+                   int buffSize = 0;
+                   byte[] inStream = new byte[300];
+                   buffSize = clientSocket.ReceiveBufferSize;
+                   serverStream.Read(inStream, 0, buffSize);
+                   string returndata = System.Text.Encoding.ASCII.GetString(inStream);
+                   readData = "" + returndata;
+                   msg();
+               }
+           }
 
-        public delegate void UpdateTextCallback(string message);*/
+
+
+           private void msg()
+           {
+               MessageLV.Dispatcher.Invoke(
+                   new UpdateTextCallback(updateText),
+                   new object[] { " >> " + readData }
+                   );
+           }
+
+           private void updateText(string message)
+           {
+               MessageTxt.Text = MessageTxt.Text + Environment.NewLine + message;
+           }
+
+           public delegate void UpdateTextCallback(string message);*/
     }
 }
