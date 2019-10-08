@@ -31,31 +31,12 @@ namespace MessagingClientProgram
         public MainWindow()
         {
             InitializeComponent();
-            ((INotifyCollectionChanged)MessageLV.Items).CollectionChanged
-               += Messages_CollectionChanged;
         }
 
 
-        private void Messages_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            if (e.NewItems == null)
-                return;
 
-            if (e.NewItems.Count > 0)
-            {
-                MessageLV.ScrollIntoView(MessageLV.Items[MessageLV.Items.Count - 1]);
-            }
-        }
-
-        private void MessageBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                var context = (MWViewModel)DataContext;
-                context.SendCommand.Execute(null);
-            }
-        }
-      /*  private void Send_Click(object sender, RoutedEventArgs e)
+       
+     /*   private void Send_Click(object sender, RoutedEventArgs e)
         {
             byte[] outStream = System.Text.Encoding.ASCII.GetBytes(MessageTxt.Text + "$");
             serverStream.Write(outStream, 0, outStream.Length);
