@@ -18,7 +18,7 @@ namespace MessagingClientProgram
         System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
         NetworkStream serverStream = default(NetworkStream);
 
-        public List<string> MessagesList;
+        public List<string> MessagesList = new List<string>();
 
 
 
@@ -79,23 +79,6 @@ namespace MessagingClientProgram
             byte[] outStream = System.Text.Encoding.ASCII.GetBytes(_message + "$");
             serverStream.Write(outStream, 0, outStream.Length);
             serverStream.Flush();
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        protected virtual bool OnPropertyChanged<T>(ref T backingField, T value, [CallerMemberName] string propertyName = "")
-        {
-            if (EqualityComparer<T>.Default.Equals(backingField, value))
-                return false;
-
-            backingField = value;
-            OnPropertyChanged(propertyName);
-            return true;
         }
     }
 }
