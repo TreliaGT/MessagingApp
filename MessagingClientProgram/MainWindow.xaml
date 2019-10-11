@@ -27,7 +27,7 @@
         <TextBox x:Name="MessageTxt" Text="{Binding Message}" HorizontalAlignment="Left" Height="49" Margin="12,9,0,0" Grid.Row="2" TextWrapping="Wrap" 
                  VerticalAlignment="Top" Width="412" Grid.Column="1"/>
      
-        <ListView x:Name="MessageLV" HorizontalAlignment="Left" Height="237" Margin="11.673,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="412" Grid.Column="1">
+        <ListView x:Name="MessageLV" ItemsSource="{Binding MessagesList}" HorizontalAlignment="Left" Height="237" Margin="11.673,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="412" Grid.Column="1">
             <ListView.View>
                 <GridView>
                     <GridViewColumn/>

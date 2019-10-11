@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -40,7 +41,7 @@ namespace MessagingClientProgram
 
 
         private string _message;
-        private WebSocket ws;
+       
 
         public string Message
         {
@@ -48,20 +49,27 @@ namespace MessagingClientProgram
             set { OnPropertyChanged(ref _message, value); }
         }
 
-        private ClientWebSocket client;
-        Uri host;
+        public List<string> MessagesList;
+
+
+
+        System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
+        NetworkStream serverStream = default(NetworkStream);
+        string readData = null;
 
         public void Connect()
         {
             try
             {
-                host = new Uri(_address);
-                CancellationToken token = source.Token;
-                client.ConnectAsync(host, token);
-                byte[] Message = Encoding.ASCII.GetBytes(_username + " : Has Connected");
-                ArraySegment<byte> Message2 = new ArraySegment<byte>(Message);
-                client.SendAsync(Message2, 0, true, token);
+                MessagesList.Add("Connecting...");
+                clientSocket.Connect(_address, Convert.ToInt32(_port));
 
+                byte[] outStream = Encoding.ASCII.GetBytes(_username + "$");
+                serverStream.Write(outStream, 0, outStream.Length);
+                serverStream.Flush();
+
+                Thread ctThread = new Thread(getMessage);
+                ctThread.Start();
             }
             catch (Exception e)
             {
@@ -69,14 +77,39 @@ namespace MessagingClientProgram
             }
         }
 
-   
-
-    public void Send()
+        private void getMessage()
         {
-            CancellationToken token = source.Token;
-            byte[] Message = Encoding.ASCII.GetBytes(_username + " : " + _message);
-            ArraySegment<byte> Message2 = new ArraySegment<byte>(Message);
-            client.SendAsync(Message2, 0, true, token);
+            while (true)
+            {
+                /* serverStream = clientSocket.GetStream();
+                 int buffSize = 0;
+                 byte[] inStream = new byte[30000];
+                 buffSize = clientSocket.ReceiveBufferSize;
+                 serverStream.Read(inStream, 0, buffSize);
+                 string returndata = System.Text.Encoding.ASCII.GetString(inStream);
+                 MessagesList.Add(returndata);*/
+                ReceiveData(clientSocket);
+
+            }
+        }
+
+        public void ReceiveData(TcpClient client)
+        {
+            NetworkStream ns = client.GetStream();
+            byte[] receivedBytes = new byte[102400];
+            int byte_count;
+
+            while ((byte_count = ns.Read(receivedBytes, 0, receivedBytes.Length)) > 0)
+            {
+                MessagesList.Add(Encoding.ASCII.GetString(receivedBytes, 0, byte_count));
+            }
+        }
+
+
+
+        public void Send()
+        {
+      
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
