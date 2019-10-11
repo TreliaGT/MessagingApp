@@ -109,7 +109,9 @@ namespace MessagingClientProgram
 
         public void Send()
         {
-      
+            byte[] outStream = System.Text.Encoding.ASCII.GetBytes(_message + "$");
+            serverStream.Write(outStream, 0, outStream.Length);
+            serverStream.Flush();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
