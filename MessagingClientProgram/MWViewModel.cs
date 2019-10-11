@@ -2,15 +2,23 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
+
 
 namespace MessagingClientProgram
 {
-    class MWViewModel 
+    class MWViewModel
     {
+        public ClientWebSocket WebSocket = new ClientWebSocket();
+
         private string _username;
         public string Username
         {
@@ -40,11 +48,18 @@ namespace MessagingClientProgram
             set { OnPropertyChanged(ref _message, value); }
         }
 
-        private void Connect()
+        public void Connect()
         {
-       
-        }
+            try
+            {
+            
 
+            }
+            catch(Exception e)
+            {
+                MessageBox.Show(e.ToString());
+            }
+        }
 
         public void Send()
         {
