@@ -48,14 +48,13 @@ namespace MessagingClientProgram
 
         private void Send_Click(object sender, RoutedEventArgs e)
         {
-            var context = (MWViewModel)DataContext;
-             context.Send();
+           
+         
         }
 
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)
         {
-            var context = (MWViewModel)DataContext;
-            context.Connect();
+           
         }
 
 

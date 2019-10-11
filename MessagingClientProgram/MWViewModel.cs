@@ -14,54 +14,21 @@ namespace MessagingClientProgram
 {
     class MWViewModel
     {
-       public CancellationTokenSource source = new CancellationTokenSource();
-   
-        public ClientWebSocket WebSocket = new ClientWebSocket();
 
-        private string _username;
-        public string Username
-        {
-            get { return _username; }
-            set { OnPropertyChanged(ref _username, value); }
-        }
-
-        private string _address;
-        public string Address
-        {
-            get { return _address; }
-            set { OnPropertyChanged(ref _address, value); }
-        }
-
-        private string _port = "8000";
-        public string Port
-        {
-            get { return _port; }
-            set { OnPropertyChanged(ref _port, value); }
-        }
-
-
-        private string _message;
-       
-
-        public string Message
-        {
-            get { return _message; }
-            set { OnPropertyChanged(ref _message, value); }
-        }
+        System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
+        NetworkStream serverStream = default(NetworkStream);
 
         public List<string> MessagesList;
 
 
 
-        System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
-        NetworkStream serverStream = default(NetworkStream);
-        string readData = null;
 
-        public void Connect()
+        public void Connect(string _address, string _port, string _username)
         {
             try
             {
                 MessagesList.Add("Connecting...");
+           
                 clientSocket.Connect(_address, Convert.ToInt32(_port));
 
                 byte[] outStream = Encoding.ASCII.GetBytes(_username + "$");
@@ -81,13 +48,13 @@ namespace MessagingClientProgram
         {
             while (true)
             {
-                /* serverStream = clientSocket.GetStream();
+                 serverStream = clientSocket.GetStream();
                  int buffSize = 0;
                  byte[] inStream = new byte[30000];
                  buffSize = clientSocket.ReceiveBufferSize;
                  serverStream.Read(inStream, 0, buffSize);
                  string returndata = System.Text.Encoding.ASCII.GetString(inStream);
-                 MessagesList.Add(returndata);*/
+                 MessagesList.Add(returndata);
                 ReceiveData(clientSocket);
 
             }
@@ -107,7 +74,7 @@ namespace MessagingClientProgram
 
 
 
-        public void Send()
+        public void Send(string _message)
         {
             byte[] outStream = System.Text.Encoding.ASCII.GetBytes(_message + "$");
             serverStream.Write(outStream, 0, outStream.Length);
