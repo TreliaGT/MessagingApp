@@ -55,7 +55,7 @@ namespace MessagingClientProgram
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)
         {
             var context = (MWViewModel)DataContext;
-            context.ConnectAsync();
+            context.Connect();
         }
 
 

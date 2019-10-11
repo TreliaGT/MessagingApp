@@ -1,22 +1,20 @@
-﻿using System;
+﻿using ControlzEx.Standard;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
 
 
 namespace MessagingClientProgram
 {
     class MWViewModel
     {
+       public CancellationTokenSource source = new CancellationTokenSource();
+   
         public ClientWebSocket WebSocket = new ClientWebSocket();
 
         private string _username;
@@ -42,28 +40,43 @@ namespace MessagingClientProgram
 
 
         private string _message;
+        private WebSocket ws;
+
         public string Message
         {
             get { return _message; }
             set { OnPropertyChanged(ref _message, value); }
         }
 
+        private ClientWebSocket client;
+        Uri host;
+
         public void Connect()
         {
             try
             {
-            
+                host = new Uri(_address);
+                CancellationToken token = source.Token;
+                client.ConnectAsync(host, token);
+                byte[] Message = Encoding.ASCII.GetBytes(_username + " : Has Connected");
+                ArraySegment<byte> Message2 = new ArraySegment<byte>(Message);
+                client.SendAsync(Message2, 0, true, token);
 
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 MessageBox.Show(e.ToString());
             }
         }
 
-        public void Send()
+   
+
+    public void Send()
         {
-       
+            CancellationToken token = source.Token;
+            byte[] Message = Encoding.ASCII.GetBytes(_username + " : " + _message);
+            ArraySegment<byte> Message2 = new ArraySegment<byte>(Message);
+            client.SendAsync(Message2, 0, true, token);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
