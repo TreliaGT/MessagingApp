@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace MessagingClientProgram
 {
-    class MWViewModel : INotifyPropertyChanged
+    class MWViewModel //: INotifyPropertyChanged
     {
       
         private string _username;
@@ -48,9 +48,9 @@ namespace MessagingClientProgram
 
         // Used to keep track of the UI Thread
         private SynchronizationContext context;
-        
-    // Can be assigned to by other classes when the this class updates.
-   // public event PropertyChangedEventHandler PropertyChanged;​
+
+        // Can be assigned to by other classes when the this class updates.
+        public PropertyChangedEventHandler PropertyChanged;​
     // Used to stop a Thread when the client loses connection to the server.
     private bool isCapturingMessages;
 ​
@@ -89,10 +89,12 @@ namespace MessagingClientProgram
         context = SynchronizationContext.Current;
         }
 ​
-       /// <summary>
-    /// Connect to a server using a given address, port, and name.
-    /// </summary>
-    public void Connect()
+
+
+        /// <summary>
+        /// Connect to a server using a given address, port, and name.
+        /// </summary>
+        public void Connect()
         {
         // Might want to do some error trapping here.
         // Regex code: "^\\w+$"
@@ -234,10 +236,9 @@ namespace MessagingClientProgram
             }
         }
 ​
-        private void RaisePropertyChanged(object param)
+    private void RaisePropertyChanged(object param)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs((string)param));
         }
-
     }
 }
