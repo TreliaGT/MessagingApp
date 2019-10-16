@@ -25,9 +25,9 @@ namespace MessagingClientProgram
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
+       /* System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
         NetworkStream serverStream = default(NetworkStream);
-        string readData = null;
+        string readData = null;*/
         public MainWindow()
         {
             InitializeComponent();
@@ -50,6 +50,18 @@ namespace MessagingClientProgram
         {
             var context = (MWViewModel)DataContext;
              context.Send();
+        }
+
+        private void ConnectBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var context = (MWViewModel)DataContext;
+            context.Connect();
+        }
+
+        private void DisconnectBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var context = (MWViewModel)DataContext;
+            context.Disconnect();
         }
 
 

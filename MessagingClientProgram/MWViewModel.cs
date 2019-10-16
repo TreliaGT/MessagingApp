@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace MessagingClientProgram
 {
-    class MWViewModel 
+    class MWViewModel : INotifyPropertyChanged
     {
+        System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
+        NetworkStream serverStream = default(NetworkStream);
         private string _username;
         public string Username
         {
@@ -25,7 +29,7 @@ namespace MessagingClientProgram
             set { OnPropertyChanged(ref _address, value); }
         }
 
-        private string _port = "8000";
+        private string _port;
         public string Port
         {
             get { return _port; }
@@ -40,15 +44,32 @@ namespace MessagingClientProgram
             set { OnPropertyChanged(ref _message, value); }
         }
 
-        private void Connect()
-        {
+        public List<string> messages;
        
+
+        public void Connect()
+        {
+            messages.Add("Connecting to Chat Server ..");
+          
+            clientSocket.Connect(_address, Convert.ToInt32(_port));
+
+            byte[] outStream = Encoding.ASCII.GetBytes(_username + "$");
+            serverStream.Write(outStream, 0, outStream.Length);
+            serverStream.Flush();
+
+            //Thread ctThread = new Thread();
+           // ctThread.Start();
         }
 
 
         public void Send()
         {
        
+        }
+
+        public void Disconnect()
+        {
+
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
