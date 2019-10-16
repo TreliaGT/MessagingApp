@@ -5,35 +5,35 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
+
 
 namespace MessagingClientProgram
 {
     class MWViewModel : INotifyPropertyChanged
     {
-        System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
-        NetworkStream serverStream = default(NetworkStream);
+      
         private string _username;
         public string Username
         {
             get { return _username; }
-            set { OnPropertyChanged(ref _username, value); }
+            set { _username = value; NotifyPropertyChanged(); }
         }
 
         private string _address;
         public string Address
         {
             get { return _address; }
-            set { OnPropertyChanged(ref _address, value); }
+            set { _address = value; NotifyPropertyChanged(); }
         }
 
         private string _port;
         public string Port
         {
             get { return _port; }
-            set { OnPropertyChanged(ref _port, value); }
+            set { _port = value; NotifyPropertyChanged(); }
         }
 
 
@@ -41,52 +41,203 @@ namespace MessagingClientProgram
         public string Message
         {
             get { return _message; }
-            set { OnPropertyChanged(ref _message, value); }
+            set { _message = value; NotifyPropertyChanged(); }
         }
 
         public List<string> messages;
-       
 
-        public void Connect()
+        // Used to keep track of the UI Thread
+        private SynchronizationContext context;
+        
+    // Can be assigned to by other classes when the this class updates.
+   // public event PropertyChangedEventHandler PropertyChanged;​
+    // Used to stop a Thread when the client loses connection to the server.
+    private bool isCapturingMessages;
+​
+    private string status;
+        /// <summary>
+        /// Can be used to keep track of what the Client is doing.
+        /// </summary>
+        public string Status
         {
-            messages.Add("Connecting to Chat Server ..");
-          
-            clientSocket.Connect(_address, Convert.ToInt32(_port));
+            get
+            {
+                return status;
+            }
+            set
+            {
+                status = value;
+                NotifyPropertyChanged();
+            }
+        }
 
-            byte[] outStream = Encoding.ASCII.GetBytes(_username + "$");
+        private TcpClient clientSocket;
+        private NetworkStream serverStream;
+​
+    // A thread specifically used to capture messages from the server.
+    private Thread captureThread;
+​
+    // The maximum size of the buffer allowed.
+    private int bufferSize = 10025;
+
+        public MWViewModel()
+        {
+            clientSocket = null;
+            serverStream = default;
+            isCapturingMessages = false;
+​
+        context = SynchronizationContext.Current;
+        }
+​
+       /// <summary>
+    /// Connect to a server using a given address, port, and name.
+    /// </summary>
+    public void Connect()
+        {
+        // Might want to do some error trapping here.
+        // Regex code: "^\\w+$"
+        // And if it fails to validate, either update the status or throw an Exception
+​
+        // Close any already existing connections
+        if (IsConnected())
+            {
+                Disconnect();
+            }
+​
+        // Create a new connection to the server with the given username.
+        Status = string.Format("Establishing a connection ....", _address, _port);
+         
+            if (clientSocket == null) clientSocket = new TcpClient();
+            try
+            {
+                clientSocket.Connect(_address, Convert.ToInt32(_port));
+            }
+            catch (SocketException)
+            {
+                // TODO: Update the Status, and run the Disconnect method
+                return;
+            }
+            serverStream = clientSocket.GetStream();
+​
+        // Send the username to the server
+        byte[] outStream = Encoding.ASCII.GetBytes(_username + "$");
             serverStream.Write(outStream, 0, outStream.Length);
             serverStream.Flush();
-
-            //Thread ctThread = new Thread();
-           // ctThread.Start();
+​
+        // TODO: Update the status notifying the Client of the new connection.
+​
+        // Create a Thread to monitor retrieval of new messages
+        isCapturingMessages = true;
+            captureThread = new Thread(CaptureMessages);
+            captureThread.Start();
         }
 
 
         public void Send()
         {
-       
+            if (IsConnected())
+            {
+                byte[] outStream = Encoding.ASCII.GetBytes(_message + "$");
+                serverStream.Write(outStream, 0, outStream.Length);
+                serverStream.Flush();
+            }
         }
 
         public void Disconnect()
         {
-
+            // Only disconnect when there is no connection
+            if (!IsConnected())
+                return;
+​
+        // Set isCapturingMessages to false, this will stop the captureThread
+        isCapturingMessages = false;
+​
+        // Close the stream connected to the server
+        serverStream.Close();
+            serverStream = default;
+​
+        // Close the socket connected to the client
+        clientSocket.Close();
+            clientSocket = null;
+​
+        // TODO: if the setStatus is set to true, update the status.
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
+        /// <summary>
+        /// Ensure that there is an existing connection.
+        /// </summary>
+        /// <returns>true if there is a connection.</returns>
+        public bool IsConnected()
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            return (clientSocket != null && clientSocket.Connected);
         }
 
-        protected virtual bool OnPropertyChanged<T>(ref T backingField, T value, [CallerMemberName] string propertyName = "")
+        /// <summary>
+        /// While isCaptureingMessages is true, constantly communicate to the server waiting to recieve messages.
+        /// </summary>
+        private void CaptureMessages()
         {
-            if (EqualityComparer<T>.Default.Equals(backingField, value))
-                return false;
-
-            backingField = value;
-            OnPropertyChanged(propertyName);
-            return true;
+            while (isCapturingMessages)
+            {
+                // Establish a new NetworkStream.
+                serverStream = clientSocket.GetStream();
+                clientSocket.ReceiveBufferSize = bufferSize;
+​
+            // Convert data recieved from the NetworkStream to a byte array.
+            byte[] inStream = new byte[bufferSize];
+                try
+                {
+                    serverStream.Read(inStream, 0, bufferSize);
+                }
+                catch (Exception)
+                {
+                    // If the client cannot get data from the NetworkStream, close the connection.
+                    Disconnect();
+                    break;
+                }
+​
+            // Get a message from the server
+            var inData = Encoding.ASCII.GetString(inStream);
+​
+            // Check if the message recieved from the server is a command (!<Command>!)
+            int firstIndex = inData.IndexOf('!');
+                int lastIndex = inData.LastIndexOf('!');
+​
+            if (firstIndex == 0
+                && lastIndex > 0)
+                {
+                    var message = inData.Substring(1, lastIndex - 1);
+​
+                if (message.Equals("Username in use"))
+                    {
+                        // If the command of the server is "Username in use" disconnect
+                        // TODO: Update the status and run Disconnect().
+                        break;
+                    }
+                }
+​
+            Message = inData;
+            }
         }
+
+
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            if (SynchronizationContext.Current == context)
+            {
+                RaisePropertyChanged(propertyName);
+            }
+            else
+            {
+                context.Send(RaisePropertyChanged, propertyName);
+            }
+        }
+​
+        private void RaisePropertyChanged(object param)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs((string)param));
+        }
+
     }
 }
