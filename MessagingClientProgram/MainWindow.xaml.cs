@@ -65,6 +65,7 @@ namespace MessagingClientProgram
         private void Send_Click(object sender, RoutedEventArgs e)
         {
               mum.Send(MessageTxt.Text);
+            MessageTxt.Text = "";
         }
 
         /// <summary>
@@ -77,6 +78,7 @@ namespace MessagingClientProgram
             if (e.Key == Key.Enter)
             {
                 mum.Send(MessageTxt.Text);
+                MessageTxt.Text = "";
             }
         }
 
