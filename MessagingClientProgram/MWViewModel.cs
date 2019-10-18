@@ -44,35 +44,27 @@ namespace MessagingClientProgram
         }
 
 
+        private bool status;
+        public bool Status
+        {
+            get{return status;}
+            set { status = value; NotifyPropertyChanged();}
+        }
 
-        // Used to keep track of the UI Thread
+        // keep track of UI Thread
         private SynchronizationContext context;
 
-        // Can be assigned to by other classes when the this class updates.
+        // assign to by other classes when this class is updated
         public event PropertyChangedEventHandler PropertyChanged;
 
         // Used to stop a Thread when the client loses connection to the server.
         private bool isCapturingMessages;
     
-        private bool status;
-
-        public bool Status
-        {
-            get
-            {
-                return status;
-            }
-            set
-            {
-                status = value;
-                NotifyPropertyChanged();
-            }
-        }
 
         private TcpClient clientSocket;
         private NetworkStream serverStream;
 
-        // A thread specifically used to capture messages from the server.
+        // A thread used to capture messages from the server.
         private Thread captureThread;
 
         // The maximum size of the buffer allowed.
@@ -88,7 +80,7 @@ namespace MessagingClientProgram
 
 
         /// <summary>
-        /// Connect to a server using a given address, port, and name.
+        /// Connect to a server
         /// </summary>
         public void Connect()
         {
@@ -143,23 +135,20 @@ namespace MessagingClientProgram
             if (!IsConnected())
                 return;
             
-            // Set isCapturingMessages to false, this will stop the captureThread
+            // this will stop the captureThread
             isCapturingMessages = false;
 
-            // Close the stream connected to the server
             serverStream.Close();
-                serverStream = default(NetworkStream);
-
-            // Close the socket connected to the client
+            serverStream = default(NetworkStream);
+  
             clientSocket.Close();
                 clientSocket = null;
 
-         
             Status = false;
         }
 
         /// <summary>
-        /// Ensure that there is an existing connection.
+        /// Ensure that there is a connection.
         /// </summary>
         /// <returns>true if there is a connection.</returns>
         public bool IsConnected()
@@ -168,13 +157,13 @@ namespace MessagingClientProgram
         }
 
         /// <summary>
-        /// While isCaptureingMessages is true, constantly communicate to the server waiting to recieve messages.
+        /// While isCaptureingMessages is true, communicate to the server.
+        /// Upon waiting for messages
         /// </summary>
         private void CaptureMessages()
         {
             while (isCapturingMessages)
             {
-                // Establish a new NetworkStream.
                 serverStream = clientSocket.GetStream();
                 clientSocket.ReceiveBufferSize = bufferSize;
                 
@@ -186,7 +175,7 @@ namespace MessagingClientProgram
                 }
                 catch (Exception)
                 {
-                    // If the client cannot get data from the NetworkStream, close the connection.
+                    // If the client cannot get data from the NetworkStream, close connection.
                     Disconnect();
                     break;
                 }

@@ -28,12 +28,7 @@
         <TextBox x:Name="MessageTxt" PreviewKeyDown="SendMessage"  HorizontalAlignment="Left" Height="35" Margin="12,9,0,0" Grid.Row="3" TextWrapping="Wrap" 
                  VerticalAlignment="Top" Width="412" Grid.Column="1"/>
 
-        <ListView x:Name="MessageLV"  HorizontalAlignment="Left" Height="237" Margin="12,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="412" Grid.Column="1" Grid.RowSpan="2" Background="#FFD1F3BD" />
-        <!--<ListView.View>
-            <GridView>
-                <GridViewColumn/>
-            </GridView>
-        </ListView.View>-->
+        <ListView x:Name="MessageLV"  HorizontalAlignment="Left" Height="237" Margin="12,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="412" Grid.Column="1" Grid.RowSpan="2" />
 
         <Label Content="Username" HorizontalAlignment="Left" Margin="239,2,0,0" VerticalAlignment="Top" Height="26" Width="63" Grid.Column="1"/>
         <Label Content="Port" HorizontalAlignment="Left" Margin="12,2,0,0" VerticalAlignment="Top" Height="26" Width="32" Grid.Column="1"/>
