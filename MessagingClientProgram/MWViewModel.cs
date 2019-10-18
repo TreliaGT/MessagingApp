@@ -14,7 +14,6 @@ namespace MessagingClientProgram
 {
     class MWViewModel : INotifyPropertyChanged
     {
-
         private string _username;
         public string Username
         {
@@ -44,7 +43,7 @@ namespace MessagingClientProgram
             set { _message = value; NotifyPropertyChanged(); }
         }
 
-        public List<string> messages;
+
 
         // Used to keep track of the UI Thread
         private SynchronizationContext context;
@@ -55,12 +54,9 @@ namespace MessagingClientProgram
         // Used to stop a Thread when the client loses connection to the server.
         private bool isCapturingMessages;
     
-        private string status;
+        private bool status;
 
-        /// <summary>
-        /// Can be used to keep track of what the Client is doing.
-        /// </summary>
-        public string Status
+        public bool Status
         {
             get
             {
@@ -96,9 +92,6 @@ namespace MessagingClientProgram
         /// </summary>
         public void Connect()
         {
-            // Might want to do some error trapping here.
-            // Regex code: "^\\w+$"
-            // And if it fails to validate, either update the status or throw an Exception
         
             // Close any already existing connections
             if (IsConnected())
@@ -107,7 +100,7 @@ namespace MessagingClientProgram
             }
         
             // Create a new connection to the server with the given username.
-            Status = string.Format("Establishing a connection ....", _address, _port);
+            Status = false;
 
             if (clientSocket == null) clientSocket = new TcpClient();
             try
@@ -116,7 +109,7 @@ namespace MessagingClientProgram
             }
             catch (SocketException)
             {
-                // TODO: Update the Status, and run the Disconnect method
+                Disconnect();
                 return;
             }
             serverStream = clientSocket.GetStream();
@@ -126,8 +119,7 @@ namespace MessagingClientProgram
                 serverStream.Write(outStream, 0, outStream.Length);
                 serverStream.Flush();
 
-            // TODO: Update the status notifying the Client of the new connection.
-
+            Status = true;
             // Create a Thread to monitor retrieval of new messages
             isCapturingMessages = true;
             captureThread = new Thread(CaptureMessages);
@@ -135,11 +127,11 @@ namespace MessagingClientProgram
         }
 
 
-        public void Send()
+        public void Send(string message)
         {
             if (IsConnected())
             {
-                byte[] outStream = Encoding.ASCII.GetBytes(_message + "$");
+                byte[] outStream = Encoding.ASCII.GetBytes(message + "$");
                 serverStream.Write(outStream, 0, outStream.Length);
                 serverStream.Flush();
             }
@@ -162,7 +154,8 @@ namespace MessagingClientProgram
             clientSocket.Close();
                 clientSocket = null;
 
-            // TODO: if the setStatus is set to true, update the status.
+         
+            Status = false;
         }
 
         /// <summary>
@@ -213,11 +206,14 @@ namespace MessagingClientProgram
                 if (message.Equals("Username in use"))
                     {
                         // If the command of the server is "Username in use" disconnect
-                        // TODO: Update the status and run Disconnect().
+                
+                        Disconnect();
                         break;
                     }
                 }
-            
+                //"\0"
+            int indexIDATA = inData.IndexOf('\0');
+            inData = inData.Substring(0 , indexIDATA);
             Message = inData;
             }
         }

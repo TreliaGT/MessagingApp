@@ -17,6 +17,7 @@ using System.Windows.Shapes;
 using System.Net.Sockets;
 using System.Threading;
 using System.Collections.Specialized;
+using System.Collections.ObjectModel;
 
 namespace MessagingClientProgram
 {
@@ -25,110 +26,81 @@ namespace MessagingClientProgram
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-       /* System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
-        NetworkStream serverStream = default(NetworkStream);
-        string readData = null;*/
+        private MWViewModel mum;
+        private ObservableCollection<string> messageCollection;
+  
         public MainWindow()
         {
             InitializeComponent();
-            ((INotifyCollectionChanged)MessageLV.Items).CollectionChanged
-              += Messages_CollectionChanged;
+
+            mum = new MWViewModel();
+            mum.PropertyChanged += MWVM_PropertyChanged;
+
+            messageCollection = new ObservableCollection<string>();
+            MessageLV.ItemsSource = messageCollection;
         }
 
-        private void Messages_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        /// <summary>
+        /// addes messages to the listview
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MWVM_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.NewItems == null)
-                return;
-
-            if (e.NewItems.Count > 0)
+            if(e.PropertyName == "Message")
             {
-                MessageLV.ScrollIntoView(MessageLV.Items[MessageLV.Items.Count - 1]);
+                messageCollection.Add(mum.Message);
+            }
+            if(e.PropertyName == "Status")
+            {
+                status.IsChecked = mum.Status;
             }
         }
 
+        /// <summary>
+        /// sends a message
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Send_Click(object sender, RoutedEventArgs e)
         {
-            var context = (MWViewModel)DataContext;
-             context.Send();
+              mum.Send(MessageTxt.Text);
         }
 
+        /// <summary>
+        /// sends message using the enter key on the keyboard
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void SendMessage(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                mum.Send(MessageTxt.Text);
+            }
+        }
+
+        /// <summary>
+        /// connects to the server
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)
         {
-            var context = (MWViewModel)DataContext;
-            context.Connect();
+            mum.Port = PortTXT.Text;
+            mum.Address = ServerTXT.Text;
+            mum.Username = UsernameTXT.Text;
+            mum.Connect();
         }
 
+        /// <summary>
+        /// disconnects from the server
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void DisconnectBtn_Click(object sender, RoutedEventArgs e)
         {
-            var context = (MWViewModel)DataContext;
-            context.Disconnect();
+            mum.Disconnect();
         }
-
-
-        /*   private void Send_Click(object sender, RoutedEventArgs e)
-           {
-               byte[] outStream = System.Text.Encoding.ASCII.GetBytes(MessageTxt.Text + "$");
-               serverStream.Write(outStream, 0, outStream.Length);
-               serverStream.Flush();
-           }
-
-           private void ConnectBtn_Click(object sender, RoutedEventArgs e)
-           {
-
-                 readData = "Connecting to Chat Server ..";
-                  msg();
-                  clientSocket.Connect("127.0.0.1", 8888);
-
-                  byte[] outStream = Encoding.ASCII.GetBytes(UsernameTXT.Text + "$");
-                  serverStream.Write(outStream, 0, outStream.Length);
-                  serverStream.Flush();
-
-                  Thread ctThread = new Thread(getMessage);
-                  ctThread.Start();
-           }
-
-           public void ReceiveData(TcpClient client)
-           {
-               NetworkStream ns = client.GetStream();
-               byte[] receivedBytes = new byte[1024];
-               int byte_count;
-
-               while ((byte_count = ns.Read(receivedBytes, 0, receivedBytes.Length)) > 0)
-               {
-                   MessageLV.Items.Add(Encoding.ASCII.GetString(receivedBytes, 0, byte_count));
-               }
-           }
-
-           private void getMessage()
-           {
-               while (true)
-               {
-                   serverStream = clientSocket.GetStream();
-                   int buffSize = 0;
-                   byte[] inStream = new byte[300];
-                   buffSize = clientSocket.ReceiveBufferSize;
-                   serverStream.Read(inStream, 0, buffSize);
-                   string returndata = System.Text.Encoding.ASCII.GetString(inStream);
-                   readData = "" + returndata;
-                   msg();
-               }
-           }
-
-
-
-           private void msg()
-           {
-               MessageLV.Dispatcher.Invoke(
-                   new UpdateTextCallback(updateText),
-                   new object[] { " >> " + readData }
-                   );
-           }
-
-           private void updateText(string message)
-           {
-               MessageTxt.Text = MessageTxt.Text + Environment.NewLine + message;
-           }
-
-           public delegate void UpdateTextCallback(string message);*/
     }
 }
