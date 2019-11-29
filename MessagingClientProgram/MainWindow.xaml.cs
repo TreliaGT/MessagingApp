@@ -50,6 +50,7 @@ namespace MessagingClientProgram
             if(e.PropertyName == "Message")
             {
                 messageCollection.Add(mum.Message);
+                MessageLV.ScrollIntoView(mum.Message);
             }
             if(e.PropertyName == "Status")
             {
